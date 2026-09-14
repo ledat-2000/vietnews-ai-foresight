@@ -2,7 +2,7 @@
  * VietNews AI Foresight - Main Application Entrypoint
  */
 
-import { fetchLatestVietnamNews } from './sources.js';
+import { fetchLatestVietnamNews, parsePubDateToTimestamp } from './sources.js';
 import { AIForesightEngine } from './aiEngine.js';
 import { SpeechService } from './speechService.js';
 
@@ -22,6 +22,7 @@ class VietNewsApp {
     this.searchKeyword = '';
     this.sourceFilter = 'ALL';
     this.sentimentFilter = 'ALL';
+    this.sortOrder = 'NEWEST';
 
     this.aiEngine = new AIForesightEngine();
     this.speechService = new SpeechService();
@@ -47,6 +48,7 @@ class VietNewsApp {
     this.searchInputEl = document.getElementById('news-search-input');
     this.sourceSelectEl = document.getElementById('source-filter-select');
     this.sentimentSelectEl = document.getElementById('sentiment-filter-select');
+    this.sortSelectEl = document.getElementById('sort-order-select');
     this.inlineRefreshBtn = document.getElementById('btn-refresh-feed-inline');
   }
 
@@ -82,11 +84,11 @@ class VietNewsApp {
     this.setupFilterListeners();
     this.renderCategories();
 
-    // 5. Auto-refresh news every 90 seconds
+    // 5. Proactive Auto-refresh live news every 30 seconds
     setInterval(() => {
-      console.log('Background auto-refreshing live RSS news feeds...');
-      this.reloadNewsData();
-    }, 90000);
+      console.log('Proactive background auto-refreshing live RSS news feeds...');
+      this.reloadNewsData(false);
+    }, 30000);
 
     // Initialize Lucide Icons
     if (window.lucide) {
@@ -136,12 +138,20 @@ class VietNewsApp {
 
   async reloadNewsData(isUserClick = false) {
     this.allNews = await fetchLatestVietnamNews();
+    
+    // Sort allNews descending by timestamp
+    this.allNews.sort((a, b) => {
+      const tsA = a.timestamp || parsePubDateToTimestamp(a.pubDate);
+      const tsB = b.timestamp || parsePubDateToTimestamp(b.pubDate);
+      return tsB - tsA;
+    });
+
     this.aiEngine.setNews(this.allNews);
 
     const nowStr = new Date().toLocaleTimeString('vi-VN');
     const statusLabel = document.getElementById('sync-status-label');
     if (statusLabel) {
-      statusLabel.textContent = `🟢 Vừa cập nhật ${nowStr}`;
+      statusLabel.textContent = `🟢 Vừa tự động cập nhật ${nowStr}`;
     }
 
     // Render Executive Briefing, Radar, Impact Matrix
@@ -172,7 +182,7 @@ class VietNewsApp {
     this.applyFilters();
 
     if (isUserClick) {
-      this.showToast(`Đã làm mới thành công ${this.allNews.length} bài tin tức lúc ${nowStr}!`);
+      this.showToast(`Đã làm mới thành công ${this.allNews.length} bài tin mới nhất lúc ${nowStr}!`);
     }
   }
 
@@ -197,6 +207,11 @@ class VietNewsApp {
 
     this.sentimentSelectEl?.addEventListener('change', (e) => {
       this.sentimentFilter = e.target.value;
+      this.applyFilters();
+    });
+
+    this.sortSelectEl?.addEventListener('change', (e) => {
+      this.sortOrder = e.target.value;
       this.applyFilters();
     });
   }
@@ -225,9 +240,16 @@ class VietNewsApp {
       return true;
     });
 
+    // Sort filteredNews strictly by publication timestamp
+    this.filteredNews.sort((a, b) => {
+      const tsA = a.timestamp || parsePubDateToTimestamp(a.pubDate);
+      const tsB = b.timestamp || parsePubDateToTimestamp(b.pubDate);
+      return this.sortOrder === 'OLDEST' ? tsA - tsB : tsB - tsA;
+    });
+
     // Update news count badge
     if (this.newsCountBadgeEl) {
-      this.newsCountBadgeEl.textContent = `${this.filteredNews.length} bài mới`;
+      this.newsCountBadgeEl.textContent = `${this.filteredNews.length} bài (Mới nhất ➔ Cũ nhất)`;
     }
 
     // Render Grid & Pre-divided Category Sections

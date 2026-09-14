@@ -3,6 +3,7 @@
  */
 
 import { NEWS_CATEGORIES, NEWS_SOURCES, SENTIMENT_TYPES } from '../types.js';
+import { parsePubDateToTimestamp } from '../sources.js';
 
 export function renderCategoryNav(containerEl, currentCategory, onSelectCategory) {
   containerEl.innerHTML = NEWS_CATEGORIES.map(cat => `
@@ -22,6 +23,11 @@ export function renderCategoryNav(containerEl, currentCategory, onSelectCategory
   });
 
   if (window.lucide) window.lucide.createIcons();
+}
+
+function getItemTimestamp(item) {
+  if (item.timestamp && typeof item.timestamp === 'number') return item.timestamp;
+  return parsePubDateToTimestamp(item.pubDate);
 }
 
 function renderNewsCardHTML(item) {
@@ -80,6 +86,9 @@ export function renderNewsGrid(gridEl, newsItems, currentCategory, onOpenReaderM
     return;
   }
 
+  // Ensure all news items are sorted descending by timestamp (Newest -> Oldest)
+  const sortedItems = [...newsItems].sort((a, b) => getItemTimestamp(b) - getItemTimestamp(a));
+
   // If a specific category tab is selected (not 'ALL'), render focused category section
   if (currentCategory !== 'ALL') {
     const catMeta = NEWS_CATEGORIES.find(c => c.id === currentCategory) || { name: 'Danh Mục Tin Tức', icon: 'folder' };
@@ -89,23 +98,26 @@ export function renderNewsGrid(gridEl, newsItems, currentCategory, onOpenReaderM
         <div class="category-block-header">
           <div class="section-title-wrap">
             <i data-lucide="${catMeta.icon}" class="section-icon" style="width: 24px; height: 24px;"></i>
-            <h2 style="font-size: 1.25rem; font-weight: 800;">Mục: ${catMeta.name}</h2>
-            <span class="badge badge-cyan">${newsItems.length} bài viết</span>
+            <h2 style="font-size: 1.25rem; font-weight: 800;">Mục: ${catMeta.name} (Mới nhất ➔ Cũ nhất)</h2>
+            <span class="badge badge-cyan">${sortedItems.length} bài viết</span>
           </div>
         </div>
 
         <div class="news-cards-grid" style="margin-top: 1rem;">
-          ${newsItems.map(item => renderNewsCardHTML(item)).join('')}
+          ${sortedItems.map(item => renderNewsCardHTML(item)).join('')}
         </div>
       </div>
     `;
   } else {
-    // If 'ALL' is selected, render PRE-DIVIDED CATEGORY SECTIONS!
+    // If 'ALL' is selected, render PRE-DIVIDED CATEGORY SECTIONS sorted Newest -> Oldest!
     const displayCategories = NEWS_CATEGORIES.filter(c => c.id !== 'ALL');
 
     gridEl.innerHTML = displayCategories.map(cat => {
-      const catItems = newsItems.filter(item => item.category === cat.id);
+      const catItems = sortedItems.filter(item => item.category === cat.id);
       if (catItems.length === 0) return '';
+
+      // Sort items within each category section strictly from Newest to Oldest!
+      catItems.sort((a, b) => getItemTimestamp(b) - getItemTimestamp(a));
 
       return `
         <section class="category-block-section" id="section-cat-${cat.id}" style="margin-bottom: 2rem;">
@@ -113,7 +125,7 @@ export function renderNewsGrid(gridEl, newsItems, currentCategory, onOpenReaderM
             <div class="section-title-wrap" style="display: flex; align-items: center; gap: 0.6rem;">
               <i data-lucide="${cat.icon}" class="section-icon" style="width: 22px; height: 22px; color: var(--accent-cyan);"></i>
               <h2 style="font-size: 1.2rem; font-weight: 800;">${cat.name}</h2>
-              <span class="badge badge-violet">${catItems.length} tin</span>
+              <span class="badge badge-violet">${catItems.length} tin • Mới nhất ➔ Cũ nhất</span>
             </div>
 
             <button class="cat-view-all-btn btn btn-secondary" data-cat="${cat.id}" style="font-size: 0.8rem; padding: 0.35rem 0.85rem;">

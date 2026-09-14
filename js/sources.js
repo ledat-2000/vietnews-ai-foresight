@@ -72,6 +72,26 @@ function generateBulletsAndImpact(title, desc, category) {
   return { bullets, impact, cleanedDesc };
 }
 
+export function parsePubDateToTimestamp(pubDateStr) {
+  if (!pubDateStr) return 0;
+  try {
+    const normalized = String(pubDateStr).replace(' ', 'T');
+    const d = new Date(normalized);
+    if (!isNaN(d.getTime())) {
+      return d.getTime();
+    }
+  } catch (e) {}
+
+  const match = String(pubDateStr).match(/(\d{1,2}):(\d{2})\s*-\s*(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (match) {
+    const [_, hh, mm, dd, month, yyyy] = match;
+    const d = new Date(parseInt(yyyy, 10), parseInt(month, 10) - 1, parseInt(dd, 10), parseInt(hh, 10), parseInt(mm, 10));
+    return d.getTime();
+  }
+
+  return 0;
+}
+
 function formatPubDate(pubDateStr) {
   if (!pubDateStr) return '13:45 - 14/09/2026';
   try {
@@ -106,6 +126,7 @@ async function fetchFromOnlineClientRSS() {
             if (!title) return;
             const { bullets, impact, cleanedDesc } = generateBulletsAndImpact(title, item.description || item.content, feedObj.cat);
             const formattedTime = formatPubDate(item.pubDate);
+            const articleTs = parsePubDateToTimestamp(item.pubDate) || (cacheBuster - itemIdx * 10 * 60 * 1000);
             
             allItems.push({
               id: `online-${feedObj.cat.toLowerCase()}-${idx}-${itemIdx}-${cacheBuster}`,
@@ -114,7 +135,7 @@ async function fetchFromOnlineClientRSS() {
               category: feedObj.cat,
               link: item.link || feedObj.rss,
               pubDate: formattedTime,
-              timestamp: cacheBuster,
+              timestamp: articleTs,
               readTime: '3 phút',
               sentiment: title.toLowerCase().includes('tăng') || title.toLowerCase().includes('đạt') || title.toLowerCase().includes('lột xác') || title.toLowerCase().includes('bứt phá') ? 'POSITIVE' : (title.toLowerCase().includes('giảm') || title.toLowerCase().includes('rủi ro') || title.toLowerCase().includes('cảnh báo') ? 'WARNING' : 'NEUTRAL'),
               summaryBullets: bullets,
@@ -144,6 +165,7 @@ async function fetchFromOnlineClientRSS() {
           if (!title) return;
           const { bullets, impact, cleanedDesc } = generateBulletsAndImpact(title, desc, feedObj.cat);
           const formattedTime = formatPubDate(pubDate);
+          const articleTs = parsePubDateToTimestamp(pubDate) || (cacheBuster - itemIdx * 10 * 60 * 1000);
 
           allItems.push({
             id: `xml-${feedObj.cat.toLowerCase()}-${idx}-${itemIdx}-${cacheBuster}`,
@@ -152,7 +174,7 @@ async function fetchFromOnlineClientRSS() {
             category: feedObj.cat,
             link: link,
             pubDate: formattedTime,
-            timestamp: cacheBuster,
+            timestamp: articleTs,
             readTime: '3 phút',
             sentiment: title.toLowerCase().includes('tăng') || title.toLowerCase().includes('đạt') || title.toLowerCase().includes('bứt phá') ? 'POSITIVE' : (title.toLowerCase().includes('giảm') || title.toLowerCase().includes('rủi ro') ? 'WARNING' : 'NEUTRAL'),
             summaryBullets: bullets,
