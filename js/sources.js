@@ -6,10 +6,12 @@
 import { NEWS_SOURCES } from './types.js';
 
 const CATEGORY_RSS_FEEDS = [
-  // HOT
-  { cat: 'HOT', source: 'VnExpress', rss: 'https://vnexpress.net/rss/thoi-su.rss' },
-  { cat: 'HOT', source: 'Tuổi Trẻ', rss: 'https://tuoitre.vn/rss/thoi-su.rss' },
+  // HOT / TIN MỚI NHẤT
+  { cat: 'HOT', source: 'VnExpress', rss: 'https://vnexpress.net/rss/tin-moi-nhat.rss' },
+  { cat: 'HOT', source: 'Tuổi Trẻ', rss: 'https://tuoitre.vn/rss/tin-moi-nhat.rss' },
+  { cat: 'HOT', source: 'Thanh Niên', rss: 'https://thanhnien.vn/rss/home.rss' },
   { cat: 'HOT', source: 'Dân Trí', rss: 'https://dantri.com.vn/rss/su-kien.rss' },
+  { cat: 'HOT', source: 'VietNamNet', rss: 'https://vietnamnet.vn/rss/thoi-su.rss' },
   // STOCKS
   { cat: 'STOCKS', source: 'VnExpress', rss: 'https://vnexpress.net/rss/kinh-doanh.rss' },
   { cat: 'STOCKS', source: 'Tuổi Trẻ', rss: 'https://tuoitre.vn/rss/kinh-doanh.rss' },
@@ -93,16 +95,32 @@ export function parsePubDateToTimestamp(pubDateStr) {
 }
 
 function formatPubDate(pubDateStr) {
-  if (!pubDateStr) return '13:45 - 14/09/2026';
+  if (!pubDateStr) return 'Vừa cập nhật';
   try {
     const normalized = String(pubDateStr).replace(' ', 'T');
     const d = new Date(normalized);
     if (!isNaN(d.getTime())) {
+      const now = Date.now();
+      const diffMs = now - d.getTime();
+      const diffMins = Math.floor(diffMs / (1000 * 60));
+      const diffHours = Math.floor(diffMins / 60);
+      const diffDays = Math.floor(diffHours / 24);
+
       const hours = String(d.getHours()).padStart(2, '0');
       const mins = String(d.getMinutes()).padStart(2, '0');
       const day = String(d.getDate()).padStart(2, '0');
       const month = String(d.getMonth() + 1).padStart(2, '0');
-      return `${hours}:${mins} - ${day}/${month}/${d.getFullYear()}`;
+      const exactTimeStr = `${hours}:${mins} - ${day}/${month}/${d.getFullYear()}`;
+
+      if (diffMins < 1) {
+        return `Vừa xong (${exactTimeStr})`;
+      } else if (diffMins < 60) {
+        return `${Math.max(1, diffMins)} phút trước (${exactTimeStr})`;
+      } else if (diffHours < 24) {
+        return `${diffHours} giờ trước (${exactTimeStr})`;
+      } else {
+        return `${diffDays} ngày trước (${exactTimeStr})`;
+      }
     }
   } catch (e) {}
   return pubDateStr;

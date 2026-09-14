@@ -21,9 +21,11 @@ DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 # Category-specific RSS Feed Mapping
 CATEGORY_RSS_MAP = {
     'HOT': [
-        {"source": "VnExpress", "url": "https://vnexpress.net/rss/thoi-su.rss"},
-        {"source": "Tuổi Trẻ", "url": "https://tuoitre.vn/rss/thoi-su.rss"},
-        {"source": "Dân Trí", "url": "https://dantri.com.vn/rss/su-kien.rss"}
+        {"source": "VnExpress", "url": "https://vnexpress.net/rss/tin-moi-nhat.rss"},
+        {"source": "Tuổi Trẻ", "url": "https://tuoitre.vn/rss/tin-moi-nhat.rss"},
+        {"source": "Thanh Niên", "url": "https://thanhnien.vn/rss/home.rss"},
+        {"source": "Dân Trí", "url": "https://dantri.com.vn/rss/su-kien.rss"},
+        {"source": "VietNamNet", "url": "https://vietnamnet.vn/rss/thoi-su.rss"}
     ],
     'STOCKS': [
         {"source": "VnExpress", "url": "https://vnexpress.net/rss/kinh-doanh.rss"},
@@ -99,21 +101,40 @@ def generate_bullets_and_impact(title, desc, category):
 
 def format_pub_date(pub_date_str):
     if not pub_date_str:
-        return time.strftime("%H:%M - %d/%m/%Y")
+        return f"Vừa cập nhật ({time.strftime('%H:%M - %d/%m/%Y')})"
+    
+    dt = None
     try:
         from email.utils import parsedate_to_datetime
         dt = parsedate_to_datetime(pub_date_str)
-        return dt.strftime("%H:%M - %d/%m/%Y")
     except Exception:
         pass
 
-    try:
-        m = re.search(r'(\d{1,2}):(\d{2})\s*-\s*(\d{1,2})/(\d{1,2})/(\d{4})', str(pub_date_str))
-        if m:
-            hh, mm, dd, month, yyyy = map(int, m.groups())
-            return f"{hh:02d}:{mm:02d} - {dd:02d}/{month:02d}/{yyyy}"
-    except Exception:
-        pass
+    if dt is None:
+        try:
+            m = re.search(r'(\d{1,2}):(\d{2})\s*-\s*(\d{1,2})/(\d{1,2})/(\d{4})', str(pub_date_str))
+            if m:
+                hh, mm, dd, month, yyyy = map(int, m.groups())
+                dt = datetime.datetime(yyyy, month, dd, hh, mm)
+        except Exception:
+            pass
+
+    if dt:
+        now_ts = time.time()
+        article_ts = dt.timestamp()
+        diff_mins = int((now_ts - article_ts) / 60)
+        diff_hours = int(diff_mins / 60)
+        diff_days = int(diff_hours / 24)
+        
+        exact_str = dt.strftime("%H:%M - %d/%m/%Y")
+        if diff_mins < 1:
+            return f"Vừa xong ({exact_str})"
+        elif diff_mins < 60:
+            return f"{max(1, diff_mins)} phút trước ({exact_str})"
+        elif diff_hours < 24:
+            return f"{diff_hours} giờ trước ({exact_str})"
+        else:
+            return f"{diff_days} ngày trước ({exact_str})"
 
     return pub_date_str
 
