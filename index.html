@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VietNews AI Foresight | Tổng Hợp Tin Tức & Dự Báo Tương Lai Trí Tuệ Nhân Tạo</title>
+  <meta name="description" content="Nền tảng tự động tổng hợp tin tức từ các báo lớn Việt Nam (VnExpress, Tuổi Trẻ, Thanh Niên, Dân Trí...) kết hợp động cơ phân tích phán đoán xu hướng tương lai AI.">
+  
+  <!-- Google Fonts: Outfit & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+  <div id="app-container" class="app-container">
+    <!-- Header Component -->
+    <header id="main-header" class="site-header"></header>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <!-- Market & News Ticker Banner -->
+      <section class="ticker-banner" id="ticker-banner"></section>
+
+      <!-- Navigation & Category Tabs -->
+      <section class="category-nav-container" id="category-nav"></section>
+
+      <!-- Hero Section: Executive Briefing & Live AI Foresight Radar -->
+      <div class="dashboard-grid">
+        <!-- Left: 60s Speed Briefing & Voice Player -->
+        <section class="card glass-card executive-section" id="executive-briefing-card"></section>
+
+        <!-- Right: AI Future Trend Radar -->
+        <section class="card glass-card radar-section" id="ai-radar-card"></section>
+      </div>
+
+      <!-- AI Future Prediction & Impact Matrix Section -->
+      <section class="card glass-card foresight-matrix-section" id="foresight-matrix-card"></section>
+
+      <!-- Main News Feed & Filter Controls -->
+      <div class="content-layout">
+        <!-- Left/Main Column: News Cards List -->
+        <section class="news-feed-container">
+          <div class="feed-header-controls">
+            <div class="section-title-wrap">
+              <i data-lucide="newspaper" class="section-icon"></i>
+              <h2>Bản Tin Tổng Hợp Việt Nam</h2>
+              <span id="news-count-badge" class="badge badge-cyan">0 bài mới</span>
+            </div>
+            
+            <div class="feed-filter-bar">
+              <div class="search-input-wrap">
+                <i data-lucide="search" class="search-icon"></i>
+                <input type="text" id="news-search-input" placeholder="Tìm tin tức, từ khóa, công ty..." aria-label="Tìm kiếm tin tức">
+              </div>
+
+              <div class="select-dropdown-wrap">
+                <select id="source-filter-select" aria-label="Lọc theo nguồn tin">
+                  <option value="ALL">Tất cả nguồn báo</option>
+                  <option value="VnExpress">VnExpress</option>
+                  <option value="Tuổi Trẻ">Báo Tuổi Trẻ</option>
+                  <option value="Thanh Niên">Báo Thanh Niên</option>
+                  <option value="Dân Trí">Báo Dân Trí</option>
+                  <option value="VietNamNet">VietNamNet</option>
+                </select>
+              </div>
+
+              <div class="select-dropdown-wrap">
+                <select id="sentiment-filter-select" aria-label="Lọc theo sắc thái">
+                  <option value="ALL">Tất cả sắc thái</option>
+                  <option value="POSITIVE">Tích cực 📈</option>
+                  <option value="NEUTRAL">Trung lập ⚖️</option>
+                  <option value="WARNING">Cần chú ý ⚠️</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- News Cards Container -->
+          <div id="news-cards-grid" class="news-cards-grid">
+            <!-- Rendered dynamically -->
+          </div>
+        </section>
+
+        <!-- Right Column: Live Analytics & AI Trends Oracle Launcher -->
+        <aside class="sidebar-container">
+          <!-- AI Oracle Quick Launch Card -->
+          <div class="card glass-card oracle-cta-card" id="oracle-cta-card"></div>
+
+          <!-- Visual Analytics Card -->
+          <div class="card glass-card analytics-card" id="analytics-card"></div>
+
+          <!-- Hot Topics & Keywords Cloud Card -->
+          <div class="card glass-card topics-card" id="hot-topics-card"></div>
+        </aside>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+      <div class="footer-content">
+        <div class="footer-brand">
+          <span class="logo-text">VietNews <span class="accent-text">AI Foresight</span></span>
+          <p>Hệ thống tổng hợp tin tức tự động & phân tích dự báo xu hướng tương lai bằng AI cho Việt Nam.</p>
+        </div>
+        <div class="footer-info">
+          <span>Cập nhật liên tục từ: VnExpress, Tuổi Trẻ, Thanh Niên, Dân Trí, VietNamNet.</span>
+          <span class="copyright">© 2026 VietNews AI. Tất cả thông tin được tổng hợp và phân tích bằng thuật toán trí tuệ nhân tạo.</span>
+        </div>
+      </div>
+    </footer>
+
+    <!-- AI Oracle Modal Drawer -->
+    <div id="oracle-modal-backdrop" class="modal-backdrop hidden">
+      <div class="modal-content glass-modal" id="oracle-modal-container">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+
+    <!-- Quick Reader Modal -->
+    <div id="reader-modal-backdrop" class="modal-backdrop hidden">
+      <div class="modal-content glass-modal reader-modal" id="reader-modal-container">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Main JavaScript Bundle Modules -->
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
