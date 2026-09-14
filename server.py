@@ -96,6 +96,16 @@ def generate_bullets_and_impact(title, desc, category):
     impact = f"Dự báo thông tin này sẽ tạo tác động trực tiếp lên {cat_names.get(category, 'thị trường')} trong chu kỳ 3-6 tháng tới."
     return bullets, impact, cleaned_desc
 
+def format_pub_date(pub_date_str):
+    if not pub_date_str:
+        return time.strftime("%H:%M:%S - %d/%m/%Y")
+    try:
+        from email.utils import parsedate_to_datetime
+        dt = parsedate_to_datetime(pub_date_str)
+        return dt.strftime("%H:%M - %d/%m/%Y")
+    except Exception:
+        return pub_date_str
+
 def fetch_single_feed(category, feed):
     headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)'}
     items_found = []
@@ -113,7 +123,7 @@ def fetch_single_feed(category, feed):
             for idx, item in enumerate(items[:5]): # Take top 5 per feed
                 title = item.findtext('title') or ''
                 link = item.findtext('link') or ''
-                pub_date = item.findtext('pubDate') or 'Vừa cập nhật'
+                pub_date = item.findtext('pubDate') or ''
                 desc_raw = item.findtext('description') or ''
                 
                 title = strip_html(title)
@@ -130,7 +140,7 @@ def fetch_single_feed(category, feed):
                     "source": feed["source"],
                     "category": category,
                     "link": link,
-                    "pubDate": "Thời gian thực",
+                    "pubDate": format_pub_date(pub_date),
                     "timestamp": int(time.time() * 1000),
                     "readTime": "3 phút",
                     "sentiment": "POSITIVE" if any(k in title.lower() for k in ["tăng", "đạt", "thành công", "phát triển", "bứt phá"]) else ("WARNING" if any(k in title.lower() for k in ["giảm", "cảnh báo", "rủi ro", "vướng"]) else "NEUTRAL"),
