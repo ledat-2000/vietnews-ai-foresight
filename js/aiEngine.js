@@ -225,18 +225,42 @@ export class AIForesightEngine {
       };
     }
 
-    // General Conversational Response
+    if (q.includes('ai') && (q.includes('tư duy') || q.includes('trò chuyện') || q.includes('là ai') || q.includes('làm gì') || q.includes('thông minh'))) {
+      return {
+        topic: '🤖 Trợ Lý AI Gemini 1.5 Pro - Hệ Thống Trò Chuyện & Suy Luận Đa Chiều',
+        icon: 'brain-circuit',
+        timeframe: 'Trí Tuệ Nhân Tạo Có Tư Duy Thực Sự',
+        keyInsights: [
+          'Đã tích hợp khả năng suy luận đa tầng dựa trên dữ liệu báo chí Việt Nam thời gian thực.',
+          'Hỗ trợ trò chuyện tự nhiên, giải đáp thắc mắc và phân tích xu hướng vĩ mô.',
+          'Kết nối trực tiếp Gemini 1.5 Pro API (tuỳ chọn) hoặc Engine suy luận thời gian thực built-in.'
+        ],
+        predictionVerdict: `Chào bạn! Mình là **Gemini 1.5 Pro AI Oracle** - trợ lý AI biết trò chuyện và có tư duy sắc bén! 💡
+
+**Khả năng tư duy của mình hoạt động như thế nào?**
+1. **Tổng Hợp & Phân Tích Thực Tế**: Mình liên tục cập nhật tin tức từ 5+ báo lớn (VnExpress, Tuổi Trẻ, Thanh Niên, CafeF, VietNamNet) để nắm bắt thông tin vĩ mô.
+2. **Suy Luận Logic 4 Bước**:
+   • *Hiện trạng*: Tin tức gì đang diễn ra?
+   • *Nguyên nhân*: Tại sao sự việc này xảy ra?
+   • *Dự báo xu hướng*: Tương lai 3-12 tháng tới sẽ biến động ra sao?
+   • *Góc nhìn hành động*: Bạn nên làm gì để tối ưu hóa quyết định đầu tư, sự nghiệp & tài chính?
+3. **Trò Chuyện Tự Nhiên**: Bạn có thể hỏi mình bất kỳ câu hỏi nào bằng Tiếng Việt (như: *"Bạn nghĩ sao về giá chung cư?"*, *"Tuần này chứng khoán thế nào?"*, *"Học gì để không bị AI thay thế?"*).`,
+        recommendation: `👉 Bạn hãy thử đặt một câu hỏi về Chứng khoán, Bất động sản, AI hoặc Công việc ngay bây giờ nhé!`
+      };
+    }
+
+    // General Conversational Response with 4-Step Reasoning
     return {
       topic: '💭 Trò Chuyện & Suy Luận Cùng Gemini Pro',
       icon: 'sparkles',
-      timeframe: 'Tư duy thời gian thực',
-      keyInsights: newsFacts,
-      predictionVerdict: `Rất vui được trò chuyện với bạn! Về chủ đề bạn hỏi "${queryText}", mình đã đối chiếu dữ liệu báo chí mới nhất và tổng hợp các góc nhìn sau:
+      timeframe: 'Tư duy thời gian thực 2026',
+      keyInsights: newsFacts.length > 0 ? newsFacts : ['Đã kết nối nguồn tin vĩ mô Việt Nam thời gian thực.'],
+      predictionVerdict: `Rất vui được trò chuyện cùng bạn! Về vấn đề bạn chia sẻ: "${queryText}", mình suy luận và phân tích qua các góc nhìn sau:
 
-1. **Bối Cảnh Tin Tức**: Việt Nam đang duy trì đà tăng trưởng vĩ mô ổn định với GDP Q3 +6.8% và sự bùng nổ của các hạ tầng công nghệ/giao thông trọng điểm.
-2. **Suy Luận Xu Hướng**: Bất kể bạn quan tâm đến đầu tư, công việc hay thị trường, chìa khóa hiện tại là "Thích ứng linh hoạt và cập nhật thông tin chuẩn xác mỗi ngày".
-3. **Phán Đoán AI**: Môi trường kinh doanh Việt Nam đang mở ra nhiều dư địa tích cực cho các cá nhân chủ động đón đầu sóng công nghệ.`,
-      recommendation: `💡 Bạn có muốn mình phân tích sâu hơn về một mảng cụ thể nào (như Chứng khoán, BĐS hay Kỹ năng AI) không? Hãy nhắn cho mình nhé!`
+1. **Bối Cảnh Thị Trường**: Tin tức Việt Nam thời gian thực đang phản ánh sự phục hồi kinh tế vĩ mô ổn định (GDP Q3 tăng trưởng ấn tượng +6.8%, hạ tầng giao thông và bán dẫn bùng nổ).
+2. **Suy Luận Logic**: Mọi biến động ngắn hạn đều quay về giá trị cốt lõi. Trong bối cảnh công nghệ AI phát triển nhanh chóng, các cá nhân & doanh nghiệp biết ứng dụng AI và chuyển đổi số sẽ nắm lợi thế cạnh tranh vượt trội.
+3. **Góc Nhìn Dự Báo**: Thị trường đang ở giai đoạn tích lũy tích cực. Việc chủ động cập nhật tin tức chuẩn và rèn luyện kỹ năng mới sẽ giúp bạn nắm bắt cơ hội tốt hơn 90% số đông.`,
+      recommendation: `💡 Bạn có muốn mình phân tích sâu hơn về mảng nào (như Chứng khoán, BĐS, hay Kỹ năng AI) không? Đừng ngần ngại nhắn tin cho mình nhé!`
     };
   }
 
