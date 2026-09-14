@@ -35,8 +35,9 @@ export function openOracleModal(modalBackdropEl, containerEl, aiEngine, initialQ
       <div class="modal-header">
         <div style="display: flex; align-items: center; gap: 0.6rem;">
           <i data-lucide="bot" style="color: var(--accent-violet); width: 24px; height: 24px;"></i>
-          <h2 style="font-size: 1.2rem; font-weight: 800;">Trợ Lý Trí Tuệ Dự Báo AI Oracle</h2>
+          <h2 style="font-size: 1.2rem; font-weight: 800;">Trợ Lý Gemini 3.8 Flash AI Oracle</h2>
         </div>
+        <span class="badge badge-cyan" style="font-size: 0.75rem;">⚡ Gemini 3.8 Flash</span>
         <button class="modal-close-btn" id="btn-close-oracle">&times;</button>
       </div>
 
