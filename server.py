@@ -13,6 +13,7 @@ import xml.etree.ElementTree as ET
 import time
 import os
 import concurrent.futures
+import datetime
 
 PORT = 8088
 DIRECTORY = os.path.dirname(os.path.abspath(__file__))
@@ -96,6 +97,26 @@ def generate_bullets_and_impact(title, desc, category):
     impact = f"Dự báo thông tin này sẽ tạo tác động trực tiếp lên {cat_names.get(category, 'thị trường')} trong chu kỳ 3-6 tháng tới."
     return bullets, impact, cleaned_desc
 
+def format_pub_date(pub_date_str):
+    if not pub_date_str:
+        return time.strftime("%H:%M - %d/%m/%Y")
+    try:
+        from email.utils import parsedate_to_datetime
+        dt = parsedate_to_datetime(pub_date_str)
+        return dt.strftime("%H:%M - %d/%m/%Y")
+    except Exception:
+        pass
+
+    try:
+        m = re.search(r'(\d{1,2}):(\d{2})\s*-\s*(\d{1,2})/(\d{1,2})/(\d{4})', str(pub_date_str))
+        if m:
+            hh, mm, dd, month, yyyy = map(int, m.groups())
+            return f"{hh:02d}:{mm:02d} - {dd:02d}/{month:02d}/{yyyy}"
+    except Exception:
+        pass
+
+    return pub_date_str
+
 def parse_pub_date_to_ts(pub_date_str):
     if not pub_date_str:
         return int(time.time() * 1000)
@@ -104,7 +125,18 @@ def parse_pub_date_to_ts(pub_date_str):
         dt = parsedate_to_datetime(pub_date_str)
         return int(dt.timestamp() * 1000)
     except Exception:
-        return int(time.time() * 1000)
+        pass
+
+    try:
+        m = re.search(r'(\d{1,2}):(\d{2})\s*-\s*(\d{1,2})/(\d{1,2})/(\d{4})', str(pub_date_str))
+        if m:
+            hh, mm, dd, month, yyyy = map(int, m.groups())
+            dt = datetime.datetime(yyyy, month, dd, hh, mm)
+            return int(dt.timestamp() * 1000)
+    except Exception:
+        pass
+
+    return int(time.time() * 1000)
 
 def fetch_single_feed(category, feed):
     headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)'}
