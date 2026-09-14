@@ -55,7 +55,7 @@ class VietNewsApp {
     renderHeader(
       this.headerEl, 
       () => this.handleOpenOracle(),
-      () => this.reloadNewsData()
+      () => this.reloadNewsData(true)
     );
     renderTickerBanner(this.tickerEl);
 
@@ -66,7 +66,7 @@ class VietNewsApp {
         icon?.classList.add('spin-animation');
         this.inlineRefreshBtn.disabled = true;
 
-        await this.reloadNewsData();
+        await this.reloadNewsData(true);
 
         setTimeout(() => {
           icon?.classList.remove('spin-animation');
@@ -94,7 +94,47 @@ class VietNewsApp {
     }
   }
 
-  async reloadNewsData() {
+  showToast(message) {
+    let toast = document.getElementById('refresh-toast-notification');
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.id = 'refresh-toast-notification';
+      toast.style.cssText = `
+        position: fixed;
+        top: 80px;
+        right: 20px;
+        z-index: 99999;
+        background: linear-gradient(135deg, rgba(6, 182, 212, 0.95), rgba(139, 92, 246, 0.95));
+        color: #ffffff;
+        padding: 0.85rem 1.25rem;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        transition: all 0.3s ease;
+        transform: translateY(-20px);
+        opacity: 0;
+      `;
+      document.body.appendChild(toast);
+    }
+    toast.innerHTML = `<i data-lucide="check-circle-2" style="width: 20px; height: 20px;"></i> ${message}`;
+    if (window.lucide) window.lucide.createIcons();
+    
+    setTimeout(() => {
+      toast.style.transform = 'translateY(0)';
+      toast.style.opacity = '1';
+    }, 50);
+
+    setTimeout(() => {
+      toast.style.transform = 'translateY(-20px)';
+      toast.style.opacity = '0';
+    }, 3500);
+  }
+
+  async reloadNewsData(isUserClick = false) {
     this.allNews = await fetchLatestVietnamNews();
     this.aiEngine.setNews(this.allNews);
 
@@ -120,6 +160,10 @@ class VietNewsApp {
     });
 
     this.applyFilters();
+
+    if (isUserClick) {
+      this.showToast(`Đã làm mới thành công ${this.allNews.length} bài tin tức lúc ${nowStr}!`);
+    }
   }
 
   renderCategories() {
