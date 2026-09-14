@@ -46,7 +46,7 @@ function generateBulletsAndImpact(title, desc, category) {
   
   const bullets = [];
   if (words.length >= 1) {
-    bullets.append ? bullets.push(words[0] + (words[0].endsWith('.') ? '' : '.')) : bullets.push(words[0] + '.');
+    bullets.push(words[0] + (words[0].endsWith('.') ? '' : '.'));
   } else {
     bullets.push(`Cập nhật diễn biến quan trọng thời gian thực: ${title}.`);
   }
@@ -72,6 +72,21 @@ function generateBulletsAndImpact(title, desc, category) {
   return { bullets, impact, cleanedDesc };
 }
 
+function formatPubDate(pubDateStr) {
+  if (!pubDateStr) return 'Vừa cập nhật';
+  try {
+    const d = new Date(pubDateStr);
+    if (!isNaN(d.getTime())) {
+      const hours = String(d.getHours()).padStart(2, '0');
+      const mins = String(d.getMinutes()).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      return `${hours}:${mins} - ${day}/${month}/${d.getFullYear()}`;
+    }
+  } catch (e) {}
+  return pubDateStr;
+}
+
 async function fetchFromOnlineClientRSS() {
   const allItems = [];
   const promises = CATEGORY_RSS_FEEDS.map(async (feedObj, idx) => {
@@ -81,10 +96,11 @@ async function fetchFromOnlineClientRSS() {
       if (!res.ok) return;
       const data = await res.json();
       if (data.status === 'ok' && Array.isArray(data.items)) {
-        data.items.slice(0, 4).forEach((item, itemIdx) => {
+        data.items.slice(0, 5).forEach((item, itemIdx) => {
           const title = stripHtml(item.title);
           if (!title) return;
           const { bullets, impact, cleanedDesc } = generateBulletsAndImpact(title, item.description || item.content, feedObj.cat);
+          const formattedTime = formatPubDate(item.pubDate);
           
           allItems.push({
             id: `online-${feedObj.cat.toLowerCase()}-${idx}-${itemIdx}`,
@@ -92,10 +108,10 @@ async function fetchFromOnlineClientRSS() {
             source: feedObj.source,
             category: feedObj.cat,
             link: item.link || feedObj.rss,
-            pubDate: 'Thời gian thực',
+            pubDate: formattedTime,
             timestamp: Date.now(),
             readTime: '3 phút',
-            sentiment: title.toLowerCase().includes('tăng') || title.toLowerCase().includes('đạt') ? 'POSITIVE' : (title.toLowerCase().includes('giảm') || title.toLowerCase().includes('rủi ro') ? 'WARNING' : 'NEUTRAL'),
+            sentiment: title.toLowerCase().includes('tăng') || title.toLowerCase().includes('đạt') || title.toLowerCase().includes('lột xác') ? 'POSITIVE' : (title.toLowerCase().includes('giảm') || title.toLowerCase().includes('rủi ro') || title.toLowerCase().includes('tử nạn') ? 'WARNING' : 'NEUTRAL'),
             summaryBullets: bullets,
             fullContent: cleanedDesc.length > 30 ? cleanedDesc : `Bài viết từ ${feedObj.source}: ${title}. Nội dung cập nhật các diễn biến quan trọng, số liệu liên quan và tác động tới ngành.`,
             aiImpactNote: impact
@@ -119,7 +135,7 @@ const FALLBACK_VIETNAM_NEWS = [
     source: 'VnExpress',
     category: 'HOT',
     link: 'https://vnexpress.net/thoi-su',
-    pubDate: 'Thời gian thực',
+    pubDate: '13:45 - 14/09/2026',
     timestamp: Date.now() - 5 * 60 * 1000,
     readTime: '3 phút',
     sentiment: 'POSITIVE',
@@ -137,7 +153,7 @@ const FALLBACK_VIETNAM_NEWS = [
     source: 'VietNamNet',
     category: 'STOCKS',
     link: 'https://vietnamnet.vn/kinh-doanh/tai-chinh',
-    pubDate: 'Thời gian thực',
+    pubDate: '13:30 - 14/09/2026',
     timestamp: Date.now() - 20 * 60 * 1000,
     readTime: '3 phút',
     sentiment: 'POSITIVE',
@@ -155,7 +171,7 @@ const FALLBACK_VIETNAM_NEWS = [
     source: 'VnExpress',
     category: 'EDUCATION',
     link: 'https://vnexpress.net/giao-duc',
-    pubDate: 'Thời gian thực',
+    pubDate: '13:15 - 14/09/2026',
     timestamp: Date.now() - 45 * 60 * 1000,
     readTime: '3 phút',
     sentiment: 'POSITIVE',
@@ -173,7 +189,7 @@ const FALLBACK_VIETNAM_NEWS = [
     source: 'Tuổi Trẻ',
     category: 'SOCIETY',
     link: 'https://tuoitre.vn/thoi-su.htm',
-    pubDate: 'Thời gian thực',
+    pubDate: '13:00 - 14/09/2026',
     timestamp: Date.now() - 75 * 60 * 1000,
     readTime: '3 phút',
     sentiment: 'POSITIVE',
@@ -191,7 +207,7 @@ const FALLBACK_VIETNAM_NEWS = [
     source: 'VietNamNet',
     category: 'TECH',
     link: 'https://vietnamnet.vn/cong-nghe',
-    pubDate: 'Thời gian thực',
+    pubDate: '12:45 - 14/09/2026',
     timestamp: Date.now() - 90 * 60 * 1000,
     readTime: '3 phút',
     sentiment: 'POSITIVE',
@@ -209,7 +225,7 @@ const FALLBACK_VIETNAM_NEWS = [
     source: 'Thanh Niên',
     category: 'REAL_ESTATE',
     link: 'https://thanhnien.vn/bat-dong-san.htm',
-    pubDate: 'Thời gian thực',
+    pubDate: '12:30 - 14/09/2026',
     timestamp: Date.now() - 120 * 60 * 1000,
     readTime: '4 phút',
     sentiment: 'NEUTRAL',
@@ -224,7 +240,18 @@ const FALLBACK_VIETNAM_NEWS = [
 ];
 
 export async function fetchLatestVietnamNews() {
-  // 1. Try local server API first
+  // 1. Try online client-side RSS engine first (Works on GitHub Pages & Browsers!)
+  try {
+    const onlineItems = await fetchFromOnlineClientRSS();
+    if (Array.isArray(onlineItems) && onlineItems.length > 0) {
+      console.log(`Fetched ${onlineItems.length} live real-time RSS items via online client engine.`);
+      return onlineItems;
+    }
+  } catch (err) {
+    console.warn('Online client RSS fetch error:', err);
+  }
+
+  // 2. Try local server API if running python server.py
   try {
     const response = await fetch('/api/rss');
     if (response.ok) {
@@ -235,18 +262,7 @@ export async function fetchLatestVietnamNews() {
       }
     }
   } catch (err) {
-    // Expected when hosted statically on GitHub Pages / Vercel
-  }
-
-  // 2. Try online client-side RSS engine (for GitHub Pages / online hosting)
-  try {
-    const onlineItems = await fetchFromOnlineClientRSS();
-    if (Array.isArray(onlineItems) && onlineItems.length > 0) {
-      console.log(`Fetched ${onlineItems.length} live real-time RSS items via online client engine.`);
-      return onlineItems;
-    }
-  } catch (err) {
-    console.warn('Online client RSS fetch error:', err);
+    // Expected when hosted statically
   }
 
   // 3. Fallback dataset

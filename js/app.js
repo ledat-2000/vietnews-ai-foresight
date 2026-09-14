@@ -51,19 +51,42 @@ class VietNewsApp {
 
   async init() {
     // 1. Render Header & Ticker
-    renderHeader(this.headerEl, () => this.handleOpenOracle());
+    renderHeader(
+      this.headerEl, 
+      () => this.handleOpenOracle(),
+      () => this.reloadNewsData()
+    );
     renderTickerBanner(this.tickerEl);
 
-    // 2. Fetch Latest Vietnam News Data
+    // 2. Fetch Initial News Data
+    await this.reloadNewsData();
+
+    // 3. Setup Filters & Category Tabs
+    this.setupFilterListeners();
+    this.renderCategories();
+
+    // 4. Auto-refresh news every 90 seconds
+    setInterval(() => {
+      console.log('Background auto-refreshing live RSS news feeds...');
+      this.reloadNewsData();
+    }, 90000);
+
+    // Initialize Lucide Icons
+    if (window.lucide) {
+      window.lucide.createIcons();
+    }
+  }
+
+  async reloadNewsData() {
     this.allNews = await fetchLatestVietnamNews();
     this.aiEngine.setNews(this.allNews);
 
-    // 3. Render Hero Section (Executive Briefing & Radar)
+    // Render Executive Briefing, Radar, Impact Matrix
     renderExecutiveBriefing(this.executiveCardEl, this.aiEngine.getExecutiveBriefing(), this.speechService);
     renderRadar(this.radarCardEl, this.aiEngine.getForesightRadar());
     renderForesightMatrix(this.foresightMatrixCardEl, this.aiEngine.getForesightImpactMatrix());
 
-    // 4. Render Oracle CTA & Analytics Sidebar
+    // Render Sidebar Analytics
     renderOracleCTA(this.oracleCtaCardEl, () => this.handleOpenOracle());
     renderAnalytics(this.analyticsCardEl, this.hotTopicsCardEl, this.allNews, (topicQuery) => {
       if (this.searchInputEl) {
@@ -73,15 +96,7 @@ class VietNewsApp {
       }
     });
 
-    // 5. Setup Filters & Category Tabs
-    this.setupFilterListeners();
-    this.renderCategories();
     this.applyFilters();
-
-    // Initialize Lucide Icons
-    if (window.lucide) {
-      window.lucide.createIcons();
-    }
   }
 
   renderCategories() {

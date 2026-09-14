@@ -2,7 +2,7 @@
  * VietNews AI Foresight - Header Component
  */
 
-export function renderHeader(containerEl, onOracleClick) {
+export function renderHeader(containerEl, onOracleClick, onRefreshNewsClick) {
   containerEl.innerHTML = `
     <div class="header-inner">
       <div class="brand-wrap">
@@ -12,10 +12,10 @@ export function renderHeader(containerEl, onOracleClick) {
         <div class="brand-title">
           VietNews <span class="accent-text">AI Foresight</span>
         </div>
-        <div class="header-status-pill">
+        <button class="header-status-pill" id="btn-refresh-live-news" title="Bấm để cập nhật lại tin thời gian thực mới nhất">
           <span class="pulse-dot"></span>
-          <span>Live RSS Sync</span>
-        </div>
+          <span id="sync-status-label">Làm Mới Tin Live 🔄</span>
+        </button>
       </div>
 
       <div class="header-actions">
@@ -35,6 +35,20 @@ export function renderHeader(containerEl, onOracleClick) {
   const oracleBtn = containerEl.querySelector('#btn-open-oracle-header');
   if (oracleBtn && typeof onOracleClick === 'function') {
     oracleBtn.addEventListener('click', onOracleClick);
+  }
+
+  const refreshBtn = containerEl.querySelector('#btn-refresh-live-news');
+  if (refreshBtn && typeof onRefreshNewsClick === 'function') {
+    refreshBtn.addEventListener('click', () => {
+      const syncLabel = containerEl.querySelector('#sync-status-label');
+      if (syncLabel) syncLabel.textContent = 'Đang đồng bộ... ⏳';
+      onRefreshNewsClick().then(() => {
+        if (syncLabel) syncLabel.textContent = 'Đã cập nhật tin mới! 🟢';
+        setTimeout(() => {
+          if (syncLabel) syncLabel.textContent = 'Làm Mới Tin Live 🔄';
+        }, 3000);
+      });
+    });
   }
 
   const themeBtn = containerEl.querySelector('#btn-toggle-theme');
