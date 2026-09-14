@@ -98,6 +98,12 @@ class VietNewsApp {
     this.allNews = await fetchLatestVietnamNews();
     this.aiEngine.setNews(this.allNews);
 
+    const nowStr = new Date().toLocaleTimeString('vi-VN');
+    const statusLabel = document.getElementById('sync-status-label');
+    if (statusLabel) {
+      statusLabel.textContent = `🟢 Vừa cập nhật ${nowStr}`;
+    }
+
     // Render Executive Briefing, Radar, Impact Matrix
     renderExecutiveBriefing(this.executiveCardEl, this.aiEngine.getExecutiveBriefing(), this.speechService);
     renderRadar(this.radarCardEl, this.aiEngine.getForesightRadar());

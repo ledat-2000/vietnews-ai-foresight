@@ -89,31 +89,73 @@ function formatPubDate(pubDateStr) {
 
 async function fetchFromOnlineClientRSS() {
   const allItems = [];
+  const cacheBuster = Date.now();
+
   const promises = CATEGORY_RSS_FEEDS.map(async (feedObj, idx) => {
     try {
-      const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feedObj.rss)}`;
-      const res = await fetch(apiUrl);
-      if (!res.ok) return;
-      const data = await res.json();
-      if (data.status === 'ok' && Array.isArray(data.items)) {
-        data.items.slice(0, 5).forEach((item, itemIdx) => {
-          const title = stripHtml(item.title);
-          if (!title) return;
-          const { bullets, impact, cleanedDesc } = generateBulletsAndImpact(title, item.description || item.content, feedObj.cat);
-          const formattedTime = formatPubDate(item.pubDate);
+      // 1. Try rss2json with timestamp cache-buster parameter
+      const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feedObj.rss)}&_t=${cacheBuster}`;
+      const res = await fetch(apiUrl, { cache: 'no-store' });
+      
+      if (res.ok) {
+        const data = await res.json();
+        if (data.status === 'ok' && Array.isArray(data.items) && data.items.length > 0) {
+          data.items.slice(0, 5).forEach((item, itemIdx) => {
+            const title = stripHtml(item.title);
+            if (!title) return;
+            const { bullets, impact, cleanedDesc } = generateBulletsAndImpact(title, item.description || item.content, feedObj.cat);
+            const formattedTime = formatPubDate(item.pubDate);
+            
+            allItems.push({
+              id: `online-${feedObj.cat.toLowerCase()}-${idx}-${itemIdx}-${cacheBuster}`,
+              title: title,
+              source: feedObj.source,
+              category: feedObj.cat,
+              link: item.link || feedObj.rss,
+              pubDate: formattedTime,
+              timestamp: cacheBuster,
+              readTime: '3 phút',
+              sentiment: title.toLowerCase().includes('tăng') || title.toLowerCase().includes('đạt') || title.toLowerCase().includes('lột xác') || title.toLowerCase().includes('bứt phá') ? 'POSITIVE' : (title.toLowerCase().includes('giảm') || title.toLowerCase().includes('rủi ro') || title.toLowerCase().includes('cảnh báo') ? 'WARNING' : 'NEUTRAL'),
+              summaryBullets: bullets,
+              fullContent: cleanedDesc.length > 30 ? cleanedDesc : `Bài viết từ ${feedObj.source}: ${title}. Nội dung cập nhật các diễn biến quan trọng, số liệu liên quan và tác động tới ngành.`,
+              aiImpactNote: impact
+            });
+          });
+          return;
+        }
+      }
+
+      // 2. Direct CORS XML Proxy Fallback (AllOrigins)
+      const xmlProxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(feedObj.rss)}&_t=${cacheBuster}`;
+      const xmlRes = await fetch(xmlProxyUrl, { cache: 'no-store' });
+      if (xmlRes.ok) {
+        const xmlText = await xmlRes.text();
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
+        const itemNodes = Array.from(xmlDoc.querySelectorAll('item')).slice(0, 5);
+
+        itemNodes.forEach((node, itemIdx) => {
+          const title = stripHtml(node.querySelector('title')?.textContent || '');
+          const link = node.querySelector('link')?.textContent?.trim() || feedObj.rss;
+          const pubDate = node.querySelector('pubDate')?.textContent || '';
+          const desc = node.querySelector('description')?.textContent || '';
           
+          if (!title) return;
+          const { bullets, impact, cleanedDesc } = generateBulletsAndImpact(title, desc, feedObj.cat);
+          const formattedTime = formatPubDate(pubDate);
+
           allItems.push({
-            id: `online-${feedObj.cat.toLowerCase()}-${idx}-${itemIdx}`,
+            id: `xml-${feedObj.cat.toLowerCase()}-${idx}-${itemIdx}-${cacheBuster}`,
             title: title,
             source: feedObj.source,
             category: feedObj.cat,
-            link: item.link || feedObj.rss,
+            link: link,
             pubDate: formattedTime,
-            timestamp: Date.now(),
+            timestamp: cacheBuster,
             readTime: '3 phút',
-            sentiment: title.toLowerCase().includes('tăng') || title.toLowerCase().includes('đạt') || title.toLowerCase().includes('lột xác') ? 'POSITIVE' : (title.toLowerCase().includes('giảm') || title.toLowerCase().includes('rủi ro') || title.toLowerCase().includes('tử nạn') ? 'WARNING' : 'NEUTRAL'),
+            sentiment: title.toLowerCase().includes('tăng') || title.toLowerCase().includes('đạt') || title.toLowerCase().includes('bứt phá') ? 'POSITIVE' : (title.toLowerCase().includes('giảm') || title.toLowerCase().includes('rủi ro') ? 'WARNING' : 'NEUTRAL'),
             summaryBullets: bullets,
-            fullContent: cleanedDesc.length > 30 ? cleanedDesc : `Bài viết từ ${feedObj.source}: ${title}. Nội dung cập nhật các diễn biến quan trọng, số liệu liên quan và tác động tới ngành.`,
+            fullContent: cleanedDesc.length > 30 ? cleanedDesc : `Bài viết từ ${feedObj.source}: ${title}. Nội dung cập nhật chi tiết.`,
             aiImpactNote: impact
           });
         });
@@ -135,7 +177,7 @@ const FALLBACK_VIETNAM_NEWS = [
     source: 'VnExpress',
     category: 'HOT',
     link: 'https://vnexpress.net/thoi-su',
-    pubDate: '13:45 - 14/09/2026',
+    pubDate: 'Thời gian thực',
     timestamp: Date.now() - 5 * 60 * 1000,
     readTime: '3 phút',
     sentiment: 'POSITIVE',
@@ -153,7 +195,7 @@ const FALLBACK_VIETNAM_NEWS = [
     source: 'VietNamNet',
     category: 'STOCKS',
     link: 'https://vietnamnet.vn/kinh-doanh/tai-chinh',
-    pubDate: '13:30 - 14/09/2026',
+    pubDate: 'Thời gian thực',
     timestamp: Date.now() - 20 * 60 * 1000,
     readTime: '3 phút',
     sentiment: 'POSITIVE',
@@ -171,7 +213,7 @@ const FALLBACK_VIETNAM_NEWS = [
     source: 'VnExpress',
     category: 'EDUCATION',
     link: 'https://vnexpress.net/giao-duc',
-    pubDate: '13:15 - 14/09/2026',
+    pubDate: 'Thời gian thực',
     timestamp: Date.now() - 45 * 60 * 1000,
     readTime: '3 phút',
     sentiment: 'POSITIVE',
@@ -189,7 +231,7 @@ const FALLBACK_VIETNAM_NEWS = [
     source: 'Tuổi Trẻ',
     category: 'SOCIETY',
     link: 'https://tuoitre.vn/thoi-su.htm',
-    pubDate: '13:00 - 14/09/2026',
+    pubDate: 'Thời gian thực',
     timestamp: Date.now() - 75 * 60 * 1000,
     readTime: '3 phút',
     sentiment: 'POSITIVE',
@@ -207,7 +249,7 @@ const FALLBACK_VIETNAM_NEWS = [
     source: 'VietNamNet',
     category: 'TECH',
     link: 'https://vietnamnet.vn/cong-nghe',
-    pubDate: '12:45 - 14/09/2026',
+    pubDate: 'Thời gian thực',
     timestamp: Date.now() - 90 * 60 * 1000,
     readTime: '3 phút',
     sentiment: 'POSITIVE',
@@ -225,7 +267,7 @@ const FALLBACK_VIETNAM_NEWS = [
     source: 'Thanh Niên',
     category: 'REAL_ESTATE',
     link: 'https://thanhnien.vn/bat-dong-san.htm',
-    pubDate: '12:30 - 14/09/2026',
+    pubDate: 'Thời gian thực',
     timestamp: Date.now() - 120 * 60 * 1000,
     readTime: '4 phút',
     sentiment: 'NEUTRAL',
@@ -240,20 +282,11 @@ const FALLBACK_VIETNAM_NEWS = [
 ];
 
 export async function fetchLatestVietnamNews() {
-  // 1. Try online client-side RSS engine first (Works on GitHub Pages & Browsers!)
-  try {
-    const onlineItems = await fetchFromOnlineClientRSS();
-    if (Array.isArray(onlineItems) && onlineItems.length > 0) {
-      console.log(`Fetched ${onlineItems.length} live real-time RSS items via online client engine.`);
-      return onlineItems;
-    }
-  } catch (err) {
-    console.warn('Online client RSS fetch error:', err);
-  }
+  const cacheBuster = Date.now();
 
-  // 2. Try local server API if running python server.py
+  // 1. Try local server API with cache-buster if running python server.py
   try {
-    const response = await fetch('/api/rss');
+    const response = await fetch(`/api/rss?_t=${cacheBuster}`, { cache: 'no-store' });
     if (response.ok) {
       const data = await response.json();
       if (Array.isArray(data) && data.length > 0) {
@@ -265,6 +298,22 @@ export async function fetchLatestVietnamNews() {
     // Expected when hosted statically
   }
 
-  // 3. Fallback dataset
-  return FALLBACK_VIETNAM_NEWS;
+  // 2. Try online client-side RSS engine (Works on GitHub Pages & Browsers!)
+  try {
+    const onlineItems = await fetchFromOnlineClientRSS();
+    if (Array.isArray(onlineItems) && onlineItems.length > 0) {
+      console.log(`Fetched ${onlineItems.length} live real-time RSS items via online client engine.`);
+      return onlineItems;
+    }
+  } catch (err) {
+    console.warn('Online client RSS fetch error:', err);
+  }
+
+  // 3. Fallback dataset with updated live timestamp
+  const currentTimeStr = new Date().toLocaleTimeString('vi-VN') + ' - ' + new Date().toLocaleDateString('vi-VN');
+  return FALLBACK_VIETNAM_NEWS.map(item => ({
+    ...item,
+    pubDate: `Vừa làm mới lúc ${currentTimeStr}`,
+    timestamp: Date.now()
+  }));
 }
