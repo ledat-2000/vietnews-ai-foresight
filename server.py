@@ -189,6 +189,7 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
 
 if __name__ == '__main__':
     handler = CustomHandler
+    socketserver.TCPServer.allow_reuse_address = True
     with socketserver.TCPServer(("", PORT), handler) as httpd:
         print(f"Server serving at http://localhost:{PORT}")
         httpd.serve_forever()

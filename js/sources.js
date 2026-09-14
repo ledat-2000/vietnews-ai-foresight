@@ -90,11 +90,13 @@ function formatPubDate(pubDateStr) {
 
 async function fetchFromOnlineClientRSS() {
   const allItems = [];
+  const cacheBuster = Date.now();
 
   const promises = CATEGORY_RSS_FEEDS.map(async (feedObj, idx) => {
     try {
-      const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feedObj.rss)}`;
-      const res = await fetch(apiUrl);
+      const busterFeedUrl = feedObj.rss + (feedObj.rss.includes('?') ? '&' : '?') + '_t=' + cacheBuster;
+      const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(busterFeedUrl)}`;
+      const res = await fetch(apiUrl, { cache: 'no-cache' });
       
       if (res.ok) {
         const data = await res.json();
@@ -106,13 +108,13 @@ async function fetchFromOnlineClientRSS() {
             const formattedTime = formatPubDate(item.pubDate);
             
             allItems.push({
-              id: `online-${feedObj.cat.toLowerCase()}-${idx}-${itemIdx}`,
+              id: `online-${feedObj.cat.toLowerCase()}-${idx}-${itemIdx}-${cacheBuster}`,
               title: title,
               source: feedObj.source,
               category: feedObj.cat,
               link: item.link || feedObj.rss,
               pubDate: formattedTime,
-              timestamp: Date.now(),
+              timestamp: cacheBuster,
               readTime: '3 phút',
               sentiment: title.toLowerCase().includes('tăng') || title.toLowerCase().includes('đạt') || title.toLowerCase().includes('lột xác') || title.toLowerCase().includes('bứt phá') ? 'POSITIVE' : (title.toLowerCase().includes('giảm') || title.toLowerCase().includes('rủi ro') || title.toLowerCase().includes('cảnh báo') ? 'WARNING' : 'NEUTRAL'),
               summaryBullets: bullets,
@@ -125,8 +127,8 @@ async function fetchFromOnlineClientRSS() {
       }
 
       // Direct CORS XML Proxy Fallback (AllOrigins)
-      const xmlProxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(feedObj.rss)}`;
-      const xmlRes = await fetch(xmlProxyUrl);
+      const xmlProxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(busterFeedUrl)}`;
+      const xmlRes = await fetch(xmlProxyUrl, { cache: 'no-cache' });
       if (xmlRes.ok) {
         const xmlText = await xmlRes.text();
         const parser = new DOMParser();
@@ -144,13 +146,13 @@ async function fetchFromOnlineClientRSS() {
           const formattedTime = formatPubDate(pubDate);
 
           allItems.push({
-            id: `xml-${feedObj.cat.toLowerCase()}-${idx}-${itemIdx}`,
+            id: `xml-${feedObj.cat.toLowerCase()}-${idx}-${itemIdx}-${cacheBuster}`,
             title: title,
             source: feedObj.source,
             category: feedObj.cat,
             link: link,
             pubDate: formattedTime,
-            timestamp: Date.now(),
+            timestamp: cacheBuster,
             readTime: '3 phút',
             sentiment: title.toLowerCase().includes('tăng') || title.toLowerCase().includes('đạt') || title.toLowerCase().includes('bứt phá') ? 'POSITIVE' : (title.toLowerCase().includes('giảm') || title.toLowerCase().includes('rủi ro') ? 'WARNING' : 'NEUTRAL'),
             summaryBullets: bullets,
