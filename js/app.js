@@ -145,7 +145,17 @@ class VietNewsApp {
     }
 
     // Render Executive Briefing, Radar, Impact Matrix
-    renderExecutiveBriefing(this.executiveCardEl, this.aiEngine.getExecutiveBriefing(), this.speechService);
+    renderExecutiveBriefing(
+      this.executiveCardEl, 
+      this.aiEngine.getExecutiveBriefing(), 
+      this.speechService,
+      (article) => {
+        openReaderModal(this.readerModalBackdropEl, this.readerModalContainerEl, article, (itemToExplain) => {
+          const questionPrompt = `Giải thích chi tiết và phân tích sâu hơn cho tôi về bài viết: "${itemToExplain.title}"`;
+          this.handleOpenOracle(questionPrompt);
+        });
+      }
+    );
     renderRadar(this.radarCardEl, this.aiEngine.getForesightRadar());
     renderForesightMatrix(this.foresightMatrixCardEl, this.aiEngine.getForesightImpactMatrix());
 

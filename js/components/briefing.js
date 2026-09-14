@@ -2,8 +2,9 @@
  * VietNews AI Foresight - Executive Briefing Component (60s Speed Briefing)
  */
 
-export function renderExecutiveBriefing(containerEl, briefingData, speechService) {
-  const fullTextToRead = `Bản tin tổng hợp Việt Nam 60 giây. ` + briefingData.bullets.join(' ');
+export function renderExecutiveBriefing(containerEl, briefingData, speechService, onOpenArticle) {
+  const bulletTexts = briefingData.bullets.map(b => typeof b === 'string' ? b : b.text);
+  const fullTextToRead = `Bản tin tổng hợp Việt Nam 60 giây. ` + bulletTexts.join('. ');
 
   containerEl.innerHTML = `
     <div class="section-header-row">
@@ -15,12 +16,19 @@ export function renderExecutiveBriefing(containerEl, briefingData, speechService
     </div>
 
     <div class="executive-bullets-list">
-      ${briefingData.bullets.map((bullet, idx) => `
-        <div class="brief-bullet-item">
-          <div class="bullet-num">${idx + 1}</div>
-          <div class="bullet-text">${bullet}</div>
-        </div>
-      `).join('')}
+      ${briefingData.bullets.map((bulletObj, idx) => {
+        const text = typeof bulletObj === 'string' ? bulletObj : bulletObj.text;
+        return `
+          <div class="brief-bullet-item" data-idx="${idx}" title="Bấm vào để xem thông tin chi tiết bài viết này">
+            <div class="bullet-num">${idx + 1}</div>
+            <div class="bullet-text">${text}</div>
+            <div class="bullet-action-hint" style="display: flex; align-items: center; gap: 0.3rem; color: var(--accent-cyan); font-size: 0.8rem; font-weight: 600; white-space: nowrap;">
+              <span>Xem chi tiết</span>
+              <i data-lucide="chevron-right" style="width: 16px; height: 16px;"></i>
+            </div>
+          </div>
+        `;
+      }).join('')}
     </div>
 
     <div class="voice-player-bar">
@@ -34,6 +42,18 @@ export function renderExecutiveBriefing(containerEl, briefingData, speechService
       </button>
     </div>
   `;
+
+  // Attach click listener to each bullet item
+  containerEl.querySelectorAll('.brief-bullet-item').forEach(itemEl => {
+    itemEl.addEventListener('click', () => {
+      const idx = parseInt(itemEl.getAttribute('data-idx'), 10);
+      const bulletObj = briefingData.bullets[idx];
+      const article = typeof bulletObj === 'object' && bulletObj.article ? bulletObj.article : null;
+      if (article && typeof onOpenArticle === 'function') {
+        onOpenArticle(article);
+      }
+    });
+  });
 
   // Attach Web Speech Voice Player handlers
   const toggleBtn = containerEl.querySelector('#btn-toggle-voice');
@@ -61,4 +81,6 @@ export function renderExecutiveBriefing(containerEl, briefingData, speechService
   toggleBtn?.addEventListener('click', () => {
     speechService.toggle(fullTextToRead);
   });
+
+  if (window.lucide) window.lucide.createIcons();
 }

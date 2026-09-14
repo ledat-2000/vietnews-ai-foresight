@@ -25,15 +25,18 @@ export class AIForesightEngine {
         updatedAt: 'Thời gian thực - Ngày 14/09/2026',
         totalAnalyzed: 0,
         bullets: [
-          'Việt Nam thúc đẩy chiến lược 50.000 kỹ sư Bán dẫn và 10.000 chuyên gia AI với sự đồng hành từ NVIDIA và Synopsys.',
-          'Ngân hàng Nhà nước duy trì mặt bằng lãi suất cho vay ưu đãi 5.5%, tập trung vốn kích cầu sản xuất và xuất khẩu.',
-          'Luật Đất đai sửa đổi gỡ vướng pháp lý cho 15+ dự án nhà ở; phân khúc chung cư và nhà ở thực giữ đà thanh khoản tốt.',
-          'Hạ tầng giao thông tăng tốc với đề xuất Đường sắt tốc độ cao Bắc - Nam 350km/h và mở rộng các tuyến Metro đô thị.'
+          { text: 'Việt Nam thúc đẩy chiến lược 50.000 kỹ sư Bán dẫn và 10.000 chuyên gia AI với sự đồng hành từ NVIDIA và Synopsys.', article: null },
+          { text: 'Ngân hàng Nhà nước duy trì mặt bằng lãi suất cho vay ưu đãi 5.5%, tập trung vốn kích cầu sản xuất và xuất khẩu.', article: null },
+          { text: 'Luật Đất đai sửa đổi gỡ vướng pháp lý cho 15+ dự án nhà ở; phân khúc chung cư và nhà ở thực giữ đà thanh khoản tốt.', article: null },
+          { text: 'Hạ tầng giao thông tăng tốc với đề xuất Đường sắt tốc độ cao Bắc - Nam 350km/h và mở rộng các tuyến Metro đô thị.', article: null }
         ]
       };
     }
 
-    const topBullets = this.newsItems.slice(0, 4).map(item => `[${item.source}] ${item.title}`);
+    const topBullets = this.newsItems.slice(0, 4).map(item => ({
+      text: `[${item.source}] ${item.title}`,
+      article: item
+    }));
 
     return {
       updatedAt: `Thời gian thực - ${new Date().toLocaleTimeString('vi-VN')} ngày ${new Date().toLocaleDateString('vi-VN')}`,
