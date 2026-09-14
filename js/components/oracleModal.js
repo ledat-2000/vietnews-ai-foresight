@@ -24,7 +24,7 @@ export function openOracleModal(modalBackdropEl, containerEl, aiEngine, initialQ
   let chatHistory = [
     {
       sender: 'ai',
-      text: 'Xin chào! Tôi là Trợ lý Trí Tuệ AI Oracle. Tôi đọc và phân tích toàn bộ tin tức Việt Nam thời gian thực. Hãy đặt bất kỳ câu hỏi nào về thị trường, chứng khoán, bất động sản hoặc cơ hội công nghệ!'
+      text: 'Xin chào! Tôi là Trợ lý AI Gemini Flash. Tôi tự động phân tích 100+ tin tức Việt Nam thời gian thực. Hãy đặt bất kỳ câu hỏi nào về thị trường, chứng khoán, bất động sản hoặc cơ hội công nghệ!'
     }
   ];
 
@@ -35,9 +35,9 @@ export function openOracleModal(modalBackdropEl, containerEl, aiEngine, initialQ
       <div class="modal-header">
         <div style="display: flex; align-items: center; gap: 0.6rem;">
           <i data-lucide="bot" style="color: var(--accent-violet); width: 24px; height: 24px;"></i>
-          <h2 style="font-size: 1.2rem; font-weight: 800;">Trợ Lý Gemini 3.8 Flash AI Oracle</h2>
+          <h2 style="font-size: 1.2rem; font-weight: 800;">Trợ Lý Gemini Flash AI Oracle</h2>
         </div>
-        <span class="badge badge-cyan" style="font-size: 0.75rem;">⚡ Gemini 3.8 Flash</span>
+        <span class="badge badge-cyan" style="font-size: 0.75rem;">⚡ AI Tự Động 24/7</span>
         <button class="modal-close-btn" id="btn-close-oracle">&times;</button>
       </div>
 
@@ -59,7 +59,7 @@ export function openOracleModal(modalBackdropEl, containerEl, aiEngine, initialQ
         ${isAnalyzing ? `
           <div class="chat-bubble ai-bubble" style="display: flex; align-items: center; gap: 0.6rem; color: var(--accent-cyan);">
             <i data-lucide="loader-2" class="spin-animation"></i>
-            <span>AI đang đọc & phân tích dữ liệu tin tức thời gian thực...</span>
+            <span>Gemini Flash đang đọc & suy luận dữ liệu tin tức thời gian thực...</span>
           </div>
         ` : ''}
       </div>
@@ -72,12 +72,12 @@ export function openOracleModal(modalBackdropEl, containerEl, aiEngine, initialQ
         </button>
       </form>
 
-      <!-- Optional Gemini API Key Drawer Toggle -->
-      <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-subtle); padding-top: 0.75rem; font-size: 0.8rem; color: var(--text-muted);">
-        <span>Trí tuệ nhân tạo tổng hợp dữ liệu báo chí thời gian thực.</span>
-        <button class="btn btn-secondary" id="btn-toggle-gemini-key" style="font-size: 0.75rem; padding: 0.25rem 0.6rem;">
-          ${aiEngine.geminiApiKey ? '✅ Đã kết nối Gemini API' : '🔑 Nhập API Key Gemini (Tùy chọn)'}
-        </button>
+      <!-- Clean Status Bar (No Key Input Needed!) -->
+      <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-subtle); padding-top: 0.75rem; font-size: 0.8rem; color: var(--accent-emerald);">
+        <span style="display: flex; align-items: center; gap: 0.4rem;">
+          <span class="pulse-dot"></span>
+          <span>⚡ Động Cơ Gemini Flash AI Tự Động Phân Tích 24/7 (Không Cần Cài Đặt)</span>
+        </span>
       </div>
     `;
 
@@ -105,14 +105,6 @@ export function openOracleModal(modalBackdropEl, containerEl, aiEngine, initialQ
       const inputEl = containerEl.querySelector('#oracle-user-input');
       const val = inputEl?.value.trim();
       if (val) submitQuery(val);
-    });
-
-    containerEl.querySelector('#btn-toggle-gemini-key')?.addEventListener('click', () => {
-      const key = prompt('Nhập Gemini API Key của bạn (hoặc để trống để dùng AI tin tức nội tại):', aiEngine.geminiApiKey);
-      if (key !== null) {
-        aiEngine.setGeminiKey(key.trim());
-        renderModalContent();
-      }
     });
   };
 
@@ -154,11 +146,11 @@ export function openOracleModal(modalBackdropEl, containerEl, aiEngine, initialQ
         </ul>
 
         <div style="background: rgba(6, 182, 212, 0.12); padding: 0.75rem; border-radius: var(--radius-sm); font-weight: 600; margin-bottom: 0.4rem; line-height: 1.5; color: #fff;">
-          🔮 Phán đoán AI: ${card.predictionVerdict}
+          🔮 Phán đoán Gemini Flash: ${card.predictionVerdict}
         </div>
 
         <div style="font-size: 0.85rem; color: #a7f3d0; background: rgba(16, 185, 129, 0.1); padding: 0.5rem; border-radius: var(--radius-sm);">
-          💡 Lời khuyên cho bạn: ${card.recommendation}
+          💡 Lời khuyên dành cho bạn: ${card.recommendation}
         </div>
       </div>
     `;
