@@ -47,6 +47,7 @@ class VietNewsApp {
     this.searchInputEl = document.getElementById('news-search-input');
     this.sourceSelectEl = document.getElementById('source-filter-select');
     this.sentimentSelectEl = document.getElementById('sentiment-filter-select');
+    this.inlineRefreshBtn = document.getElementById('btn-refresh-feed-inline');
   }
 
   async init() {
@@ -58,14 +59,30 @@ class VietNewsApp {
     );
     renderTickerBanner(this.tickerEl);
 
-    // 2. Fetch Initial News Data
+    // 2. Inline Refresh Button Listener
+    if (this.inlineRefreshBtn) {
+      this.inlineRefreshBtn.addEventListener('click', async () => {
+        const icon = document.getElementById('refresh-icon-inline');
+        icon?.classList.add('spin-animation');
+        this.inlineRefreshBtn.disabled = true;
+
+        await this.reloadNewsData();
+
+        setTimeout(() => {
+          icon?.classList.remove('spin-animation');
+          this.inlineRefreshBtn.disabled = false;
+        }, 1200);
+      });
+    }
+
+    // 3. Fetch Initial News Data
     await this.reloadNewsData();
 
-    // 3. Setup Filters & Category Tabs
+    // 4. Setup Filters & Category Tabs
     this.setupFilterListeners();
     this.renderCategories();
 
-    // 4. Auto-refresh news every 90 seconds
+    // 5. Auto-refresh news every 90 seconds
     setInterval(() => {
       console.log('Background auto-refreshing live RSS news feeds...');
       this.reloadNewsData();

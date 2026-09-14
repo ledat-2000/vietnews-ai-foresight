@@ -12,13 +12,18 @@ export function renderHeader(containerEl, onOracleClick, onRefreshNewsClick) {
         <div class="brand-title">
           VietNews <span class="accent-text">AI Foresight</span>
         </div>
-        <button class="header-status-pill" id="btn-refresh-live-news" title="Bấm để cập nhật lại tin thời gian thực mới nhất">
+        <div class="header-status-pill">
           <span class="pulse-dot"></span>
-          <span id="sync-status-label">Làm Mới Tin Live 🔄</span>
-        </button>
+          <span id="sync-status-label">Live RSS 24/7</span>
+        </div>
       </div>
 
       <div class="header-actions">
+        <button class="btn btn-primary" id="btn-refresh-live-header" title="Cập nhật toàn bộ tin tức thời gian thực">
+          <i data-lucide="refresh-cw" id="refresh-icon-header"></i>
+          <span id="refresh-btn-text">Làm Mới All Tin Tức</span>
+        </button>
+
         <button class="btn btn-violet" id="btn-open-oracle-header">
           <i data-lucide="bot"></i>
           <span>Hỏi AI Dự Báo</span>
@@ -37,17 +42,29 @@ export function renderHeader(containerEl, onOracleClick, onRefreshNewsClick) {
     oracleBtn.addEventListener('click', onOracleClick);
   }
 
-  const refreshBtn = containerEl.querySelector('#btn-refresh-live-news');
+  const refreshBtn = containerEl.querySelector('#btn-refresh-live-header');
+  const refreshIcon = containerEl.querySelector('#refresh-icon-header');
+  const refreshText = containerEl.querySelector('#refresh-btn-text');
+
   if (refreshBtn && typeof onRefreshNewsClick === 'function') {
-    refreshBtn.addEventListener('click', () => {
-      const syncLabel = containerEl.querySelector('#sync-status-label');
-      if (syncLabel) syncLabel.textContent = 'Đang đồng bộ... ⏳';
-      onRefreshNewsClick().then(() => {
-        if (syncLabel) syncLabel.textContent = 'Đã cập nhật tin mới! 🟢';
+    refreshBtn.addEventListener('click', async () => {
+      refreshIcon?.classList.add('spin-animation');
+      if (refreshText) refreshText.textContent = 'Đang tải tin mới...';
+      refreshBtn.disabled = true;
+
+      try {
+        await onRefreshNewsClick();
+        if (refreshText) refreshText.textContent = 'Đã cập nhật tin mới! 🟢';
+      } catch (e) {
+        if (refreshText) refreshText.textContent = 'Lỗi kết nối RSS';
+      } finally {
         setTimeout(() => {
-          if (syncLabel) syncLabel.textContent = 'Làm Mới Tin Live 🔄';
-        }, 3000);
-      });
+          refreshIcon?.classList.remove('spin-animation');
+          if (refreshText) refreshText.textContent = 'Làm Mới All Tin Tức';
+          refreshBtn.disabled = false;
+          if (window.lucide) window.lucide.createIcons();
+        }, 2000);
+      }
     });
   }
 
@@ -65,6 +82,8 @@ export function renderHeader(containerEl, onOracleClick, onRefreshNewsClick) {
     }
     if (window.lucide) window.lucide.createIcons();
   });
+
+  if (window.lucide) window.lucide.createIcons();
 }
 
 export function renderTickerBanner(containerEl) {

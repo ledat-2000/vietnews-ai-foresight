@@ -47,10 +47,17 @@
         <!-- Left/Main Column: News Cards List -->
         <section class="news-feed-container">
           <div class="feed-header-controls">
-            <div class="section-title-wrap">
-              <i data-lucide="newspaper" class="section-icon"></i>
-              <h2>Bản Tin Tổng Hợp Việt Nam</h2>
-              <span id="news-count-badge" class="badge badge-cyan">0 bài mới</span>
+            <div class="section-title-wrap" style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+              <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <i data-lucide="newspaper" class="section-icon"></i>
+                <h2>Bản Tin Tổng Hợp Việt Nam</h2>
+                <span id="news-count-badge" class="badge badge-cyan">0 bài mới</span>
+              </div>
+
+              <button class="btn btn-primary" id="btn-refresh-feed-inline">
+                <i data-lucide="refresh-cw" id="refresh-icon-inline"></i>
+                <span>Cập Nhật Tin Mới</span>
+              </button>
             </div>
             
             <div class="feed-filter-bar">
